@@ -218,6 +218,7 @@ def main():
 
             gt = datetime.now(est)
             endtime = gt + timedelta(seconds=time_offset+UNTILSECOND)
+            print("Bot try to Claims Cell IDs", cellcode)
             while True:
                 with ThreadPoolExecutor(max_workers=10) as executor:
                     futures = [executor.submit(do_request) for i in range(0, 10)]
