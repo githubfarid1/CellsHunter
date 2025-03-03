@@ -15,6 +15,7 @@ import warnings
 import shutil
 from dotenv import load_dotenv, dotenv_values
 from datetime import datetime, timedelta, date, time
+from pathlib import Path
 
 warnings.filterwarnings("ignore", category=UserWarning)
 if platform == "linux" or platform == "linux2":
@@ -207,6 +208,11 @@ class RecaptchaTokenFrame(ttk.Frame):
 		self.rowconfigure(5, weight=1)
 
 		# populate
+		check = Path("captcharesponse.txt")
+		if not check.is_file():
+			with open('captcharesponse.txt', 'w') as fp:
+				pass
+				
 		texttoken = Text(self, height = 10, width = 75)
 		with open("captcharesponse.txt", "r") as file:
 			content = file.readlines()
@@ -217,6 +223,7 @@ class RecaptchaTokenFrame(ttk.Frame):
 		texttoken.grid(column = 0, row = 1, sticky=(W))
 		closeButton.grid(column = 0, row = 6, sticky = (E, N, S))
 		saveButton.grid(column = 0, row = 6, sticky = (W, N, S))
+
     
 	def save(self, **kwargs):
 		# breakpoint()
