@@ -8,5 +8,4 @@
 7. download latest camoufox extensions: ``` camoufox fetch ```
 8. rename .env.txt to .env
 9. set value for USER and PASSWORD and make sure PYLOC value is right.
-10. jelaskan tentang camoufox kalau berpindah antar tab dengan ctrl+tab
 

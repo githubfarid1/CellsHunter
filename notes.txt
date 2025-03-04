@@ -6,3 +6,5 @@
 6. copy token dan simpan ke file captcharesponse.txt
 
 cellid pancingan: 52B15H388, 52K10C192, 52K10C193, 52K10C191
+
+jelaskan tentang camoufox kalau berpindah antar tab dengan ctrl+tab
