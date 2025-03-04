@@ -172,7 +172,7 @@ class CellHunterFrame(ttk.Frame):
 		textdate.grid(column=0, row=1)
 		labeltime.grid(column = 0, row = 2, sticky=(W))
 		texttime.grid(column=0, row=2)
-		texttime.insert(0, "09:59:59.500000")
+		texttime.insert(0, os.environ.get("CLICKTIME"))
         
 		labelcellids.grid(column = 0, row = 3, sticky=(W))
 		textcellids.grid(column=0, row=3)

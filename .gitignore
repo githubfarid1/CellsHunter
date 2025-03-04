@@ -172,3 +172,4 @@ cython_debug/
 info.json
 headers.json
 captcharesponse.txt
+.venv.txt
