@@ -12,9 +12,14 @@ import requests
 import json
 from dateutil import tz
 from constants import *
-from playsound import playsound
 from concurrent.futures import ThreadPoolExecutor, wait, as_completed
 import argparse
+from utils.rotation_logger import setup_logger
+
+logger = setup_logger(__name__)
+__version__ = '1.0'
+
+logger.info(f'CellHunter started at {datetime.now().strftime("%D %T")}. Version {__version__}')
 
 load_dotenv()
 USER = os.environ.get("USER")
@@ -26,11 +31,14 @@ UNTILSECOND = float(os.environ.get("UNTILSECOND"))
 SLEEPSECOND = float(os.environ.get("SLEEPSECOND"))
 # breakpoint()
 est = timezone("US/Eastern")
-PROXY={
-        'server': os.environ.get("PROXY_SERVER"),
-        'username': os.environ.get("PROXY_USERNAME"),
-        'password': os.environ.get("PROXY_PASSWORD")
-    }
+PROXY = None
+if os.environ.get("PROXY_SERVER") != None:
+    PROXY={
+            'server': os.environ.get("PROXY_SERVER"),
+            'username': os.environ.get("PROXY_USERNAME"),
+            'password': os.environ.get("PROXY_PASSWORD")
+        }
+
 
 def gettimenow():
     time_synced = False
@@ -81,12 +89,16 @@ def main():
     try:
         date.fromisoformat(args.date)
     except ValueError:
-        raise ValueError("Incorrect date format, should be YYYY-MM-DD")
+        message = "Incorrect date format, should be YYYY-MM-DD"
+        logger.exception(message)
+        raise ValueError(message)
         
     try:
         time.fromisoformat(args.time)
     except ValueError:
-        raise ValueError("Incorrect time format, should be HH:MM:SS.MS")
+        message = "Incorrect time format, should be HH:MM:SS.MS"
+        logger.exception(message)
+        raise ValueError(message)
 
 
     clear = lambda: os.system('cls')
@@ -104,14 +116,17 @@ def main():
     cellcode = args.cellids
     print("CELL IDs:", cellcode)
     print("Click execute time at:", clickmestr)
+
     try:
         session = requests.Session()
         constrains = Screen(max_width=1280, max_height=720)
-        # with Camoufox(headless=HEADLESS, humanize=(0.5, 1.0), screen=constrains, os="windows") as playwright:
-        with Camoufox(headless=HEADLESS, screen=constrains, os="windows", geoip=True,  locale="en-US") as playwright:
-
+        with Camoufox(headless=HEADLESS, screen=constrains, os="windows", geoip=True,  locale="en-US", humanize="1.0") as playwright:
             # await run(playwright)
-            context = playwright.new_context(no_viewport=True)
+            if PROXY == None:
+                context = playwright.new_context(no_viewport=True, )
+            else:
+                context = playwright.new_context(no_viewport=True, proxy=PROXY)
+
             page = context.new_page()
             # breakpoint()
             url = "https://signin.ontario.ca/"
@@ -163,8 +178,6 @@ def main():
                     break
             
             print("PASSED")
-            # playsound("sound1.wav")
-            # input("pause")
             time_offset = 0
             while True:
                 try:
@@ -193,8 +206,12 @@ def main():
             
             with open('captcharesponse.txt') as file:
                 content = file.readlines()
-            captcharesponse = content[3].split(",")[1].replace('"',"").replace("'","")
-
+            try:
+                captcharesponse = content[3].split(",")[1].replace('"',"").replace("'","")
+            except:
+                logger.exception("captcharesponse.txt is empty or not right value")
+                input("captcharesponse.txt is empty or not right value") 
+                sys.exit()
             payload = PAYLOAD.copy()
             with open('info.json') as json_file:
                 info = json.load(json_file)
@@ -226,6 +243,7 @@ def main():
                         try:
                             future.result()  # Ensure the task has completed without errors
                         except Exception as e:
+                            logger.exception(f"Error in thread: {str(e)}")
                             print(f"Error in thread: {e}")
 
                 
@@ -238,6 +256,7 @@ def main():
         exc_type, exc_obj, exc_tb = sys.exc_info()
         fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
         print(exc_type,fname,exc_tb.tb_lineno)
+        logger.exception(" ".join([str(exc_type), str(fname), str(exc_tb.tb_lineno)]) )
 
 if __name__ == "__main__":
     main()
