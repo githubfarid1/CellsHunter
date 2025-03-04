@@ -120,10 +120,10 @@ def main():
     try:
         session = requests.Session()
         constrains = Screen(max_width=1280, max_height=720)
-        with Camoufox(headless=HEADLESS, screen=constrains, os="windows", geoip=True,  locale="en-US", humanize=True) as playwright:
+        with Camoufox(headless=HEADLESS, screen=constrains, os="windows", geoip=True,  locale="en-US") as playwright:
             # await run(playwright)
             if PROXY == None:
-                context = playwright.new_context(no_viewport=True)
+                context = playwright.new_context(no_viewport=True, )
             else:
                 context = playwright.new_context(no_viewport=True, proxy=PROXY)
 
@@ -134,7 +134,7 @@ def main():
             page.goto(url, wait_until="networkidle", timeout=120000)
             print("PASSED")
             print("Waiting for Login", "... ", end="", flush=True)
-            page.wait_for_selector("input[name='identifier']", timeout=30000)
+            page.wait_for_selector("input[name='identifier']", timeout=60000)
             page.fill("input[name='identifier']", USER)
             page.fill("input[name='credentials.passcode']", PASSWORD)
             # breakpoint()
@@ -152,15 +152,13 @@ def main():
             print("PASSED")
             print("Opening menu Register a minning Claim", "... ", end="", flush=True)
             page2.wait_for_selector("dshb-bulletin-dtv", timeout=60000)
-            
-            
-            # page2.goto("https://www.mlas.mndm.gov.on.ca/mlas/index.html#/p_CanhAcmcAcquireMiningClaim", wait_until="networkidle")
+            page2.goto("https://www.mlas.mndm.gov.on.ca/mlas/index.html#/p_CanhAcmcAcquireMiningClaim", wait_until="networkidle")
 
 
-            menu = page2.locator("li.menu").nth(4)
-            menu.click()
-            page.wait_for_timeout(500)
-            menu.click()
+            # menu = page2.locator("li.menu").nth(4)
+            # menu.click()
+            # page.wait_for_timeout(500)
+            # menu.click()
             
             next = page2.wait_for_selector("input[name='declarationChkbox']")
             page2.wait_for_timeout(2000)
@@ -220,30 +218,45 @@ def main():
             payload = PAYLOAD.copy()
             with open('info.json') as json_file:
                 info = json.load(json_file)
-            payload['selectedCellIds'] = cellcode
+            
+            cellids = [cell.strip() for cell in str(cellcode).split(",")]
+
+            # payload['selectedCellIds'] = cellcode
             payload['submitter'] = info['submitter']
             payload['clientNumberId'] = info['clientNumberId']
             payload['clientName'] = info['clientName']
             payload['agentOfList'][0]['clientNumberId'] = info['agentOfList'][0]['clientNumberId']  
             payload['agentOfList'][0]['fullName'] = info['agentOfList'][0]['fullName']  
             payload['agentOfList'][0]['clientIdAndName'] = info['agentOfList'][0]['clientIdAndName']
-            payload['revisedSelectedCellIds'] = cellcode  
+            # payload['revisedSelectedCellIds'] = cellcode  
             payload['gRecaptchaResponse'] = captcharesponse
-            def do_request():
+
+            def do_request(cellid, timeout=10):
+                payload['selectedCellIds'] = cellid
+                payload['revisedSelectedCellIds'] = cellid
                 response = session.post(
                     'https://www.mlas.mndm.gov.on.ca/mlas/mlas/tenure/module/p_canh/module/acmc/lockSelectedCells',
                     headers=headers,
                     json=payload,
+                    # timeout=timeout
                 )
                 result = response.json()
-                print("Cell ID's claims Status:", result['status'])
+                try:
+                    errmessage = result['errorMsg']
+                except:
+                    errmessage = "None"
+                print(f"Cell ID {cellid} claims Status:", result['status'], "message:", errmessage)
 
             gt = datetime.now(est)
             endtime = gt + timedelta(seconds=time_offset+UNTILSECOND)
-            print("Bot is trying to Claims Cell IDs", cellcode)
+            # print("Bot try to Claims Cell IDs", cellcode)
             while True:
-                with ThreadPoolExecutor(max_workers=10) as executor:
-                    futures = [executor.submit(do_request) for i in range(0, 10)]
+                with ThreadPoolExecutor(max_workers=16) as executor:
+                    futures = []
+                    for i in range(0, 3):
+                        for cellid in cellids:
+                            futures.append(executor.submit(do_request, cellid=cellid, timeout=0.5))
+
                     for i, future in enumerate(as_completed(futures)):
                         try:
                             future.result()  # Ensure the task has completed without errors

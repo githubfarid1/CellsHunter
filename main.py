@@ -188,8 +188,8 @@ class CellHunterFrame(ttk.Frame):
 			time.fromisoformat(kwargs['time'].get())
 		except ValueError:
 			raise ValueError("Incorrect time format, should be HH:MM:SS.MS")
+		
 		comlist = [PYLOC, "miner.py", "-d", kwargs['date'].get(), "-t", kwargs['time'].get(), "-c", kwargs['cellids'].get()]
-		# breakpoint()
 		run_module(comlist=comlist)
 
 class RecaptchaTokenFrame(ttk.Frame):
