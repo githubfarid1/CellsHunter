@@ -32,7 +32,8 @@ SLEEPSECOND = float(os.environ.get("SLEEPSECOND"))
 # breakpoint()
 est = timezone("US/Eastern")
 PROXY = None
-if os.environ.get("PROXY_SERVER") != None:
+# breakpoint()
+if os.environ.get("PROXY_SERVER") != '':
     PROXY={
             'server': os.environ.get("PROXY_SERVER"),
             'username': os.environ.get("PROXY_USERNAME"),
