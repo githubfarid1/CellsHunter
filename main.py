@@ -24,6 +24,7 @@ elif platform == "win32":
 	from subprocess import CREATE_NEW_CONSOLE
 import json
 VERSION = "1.0"
+OWNER = ""
 def run_module(comlist):
 	if platform == "linux" or platform == "linux2":
 		comlist[:0] = ["--"]
@@ -45,7 +46,8 @@ def main():
 class Window(Tk):
 	def __init__(self) -> None:
 		super().__init__()
-		self.title('Last Resort Script ' + VERSION)
+		
+		self.title(f'{OWNER} {VERSION}')
 		# self.resizable(0, 0)
 		self.grid_propagate(False)
 		width = 550
@@ -115,7 +117,7 @@ class MainFrame(ttk.Frame):
   
 		
 		titleLabel = TitleLabel(self, 'Main Menu')
-		cellHunterButton = FrameButton(self, window, text="Cells Hunter", class_frame=CellHunterFrame)
+		cellHunterButton = FrameButton(self, window, text="cell hunter", class_frame=CellHunterFrame)
 		captchaTokenButton = FrameButton(self, window, text="Update ReCaptcha Token", class_frame=RecaptchaTokenFrame)
 
 		# layout
