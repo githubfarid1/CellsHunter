@@ -156,7 +156,7 @@ class CellHunterFrame(ttk.Frame):
 		self.rowconfigure(5, weight=1)
 
 		# populate
-		titleLabel = TitleLabel(self, text="Cells Hunter")
+		titleLabel = TitleLabel(self, text="cell hunter")
 		closeButton = CloseButton(self)
 		
 		labelcellids = Label(self, text="CELL ID's:")
