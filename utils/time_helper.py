@@ -7,8 +7,10 @@ from pytz import timezone
 
 def get_sync_time():
     client = ntplib.NTPClient()
-    server = 'pool.ntp.org'
-    resp = client.request(server, version=3)
+    # server = 'pool.ntp.org'
+    server = "time.nrc.ca"
+    # resp = client.request(server, version=3)
+    resp = client.request(server, version=4)
     return resp.tx_time, resp.offset
 
 

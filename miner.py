@@ -121,7 +121,7 @@ def main():
     try:
         session = requests.Session()
         constrains = Screen(max_width=1280, max_height=720)
-        with Camoufox(headless=HEADLESS, screen=constrains, os="windows", geoip=True,  locale="en-US", humanize=True) as playwright:
+        with Camoufox(headless=HEADLESS, screen=constrains, os="windows", geoip=True,  locale="en-US") as playwright:
             # await run(playwright)
             if PROXY == None:
                 context = playwright.new_context(no_viewport=True)
@@ -177,6 +177,7 @@ def main():
             page2.fill("textarea#selectedGeoMapIds", cellcode, timeout=90000)
             print("PASSED")
             waittime = clickme - timedelta(seconds=SLEEPSECOND)
+            opencaptchatime = clickme - timedelta(seconds=10)
             print("Sleep until", waittime.strftime("%m/%d/%Y, %H:%M:%S"), "...", end="", flush=True)
             while True:
                 gt = datetime.now(est)
@@ -199,51 +200,69 @@ def main():
                 if time_offset > 0 else f'Your local clock is {time_offset_str} seconds slow.')
             # print(message)
             print("Waiting click time at", clickmestr.split(" ")[1], "....")
-
+            
+            with open('headers.json') as json_file:
+                headers = json.load(json_file)
+            readstatus  = False
             while True:
                 gt = datetime.now(est)
                 gt = gt + timedelta(seconds=time_offset)
-                print("Now:", gt.strftime("%m/%d/%Y, %H:%M:%S"))
+                print("Now:", gt.strftime("%H:%M:%S.%f"))
+                if gt.timestamp() >= opencaptchatime.timestamp() and not readstatus:
+                    readstatus = True
+                    print("read captcha token..")
+                    with open('captcharesponse.txt') as file:
+                        content = file.readlines()
+                    try:
+                        captcharesponse = content[3].split(",")[1].replace('"',"").replace("'","")
+                        payload = PAYLOAD.copy()
+                        with open('info.json') as json_file:
+                            info = json.load(json_file)
+                        payload['selectedCellIds'] = cellcode
+                        payload['submitter'] = info['submitter']
+                        payload['clientNumberId'] = info['clientNumberId']
+                        payload['clientName'] = info['clientName']
+                        payload['agentOfList'][0]['clientNumberId'] = info['agentOfList'][0]['clientNumberId']  
+                        payload['agentOfList'][0]['fullName'] = info['agentOfList'][0]['fullName']  
+                        payload['agentOfList'][0]['clientIdAndName'] = info['agentOfList'][0]['clientIdAndName']
+                        payload['revisedSelectedCellIds'] = cellcode  
+                        payload['gRecaptchaResponse'] = captcharesponse
+
+                    except:
+                        logger.exception("captcharesponse.txt is empty or not right value")
+                        input("captcharesponse.txt is empty or not right value") 
+                        sys.exit()
+
+
                 if gt.timestamp() >= clickme.timestamp():
                     break
 
-            with open('headers.json') as json_file:
-                headers = json.load(json_file)
             
-            with open('captcharesponse.txt') as file:
-                content = file.readlines()
-            try:
-                captcharesponse = content[3].split(",")[1].replace('"',"").replace("'","")
-            except:
-                logger.exception("captcharesponse.txt is empty or not right value")
-                input("captcharesponse.txt is empty or not right value") 
-                sys.exit()
-            payload = PAYLOAD.copy()
-            with open('info.json') as json_file:
-                info = json.load(json_file)
-            payload['selectedCellIds'] = cellcode
-            payload['submitter'] = info['submitter']
-            payload['clientNumberId'] = info['clientNumberId']
-            payload['clientName'] = info['clientName']
-            payload['agentOfList'][0]['clientNumberId'] = info['agentOfList'][0]['clientNumberId']  
-            payload['agentOfList'][0]['fullName'] = info['agentOfList'][0]['fullName']  
-            payload['agentOfList'][0]['clientIdAndName'] = info['agentOfList'][0]['clientIdAndName']
-            payload['revisedSelectedCellIds'] = cellcode  
-            payload['gRecaptchaResponse'] = captcharesponse
             def do_request():
+                gt = datetime.now(est)
+                gt = gt + timedelta(seconds=time_offset)
+                starttime = gt.strftime("%H:%M:%S.%f")
                 response = session.post(
                     'https://www.mlas.mndm.gov.on.ca/mlas/mlas/tenure/module/p_canh/module/acmc/lockSelectedCells',
                     headers=headers,
                     json=payload,
                 )
                 result = response.json()
-                print("Cell ID's claims Status:", result['status'])
+                if result['status'] == 'SUCCESSFUL':
+                    gt = datetime.now(est)
+                    gt = gt + timedelta(seconds=time_offset)
+                    # print("Sleep until", waittime.strftime("%m/%d/%Y, %H:%M:%S"), "...", end="", flush=True)
+                    print("Cell ID's claims Status:", result['status'], "start:",starttime, "end:", gt.strftime("%H:%M:%S.%f"))
+
+                else:
+                    print("Cell ID's claims Status:", result['status'])
 
             gt = datetime.now(est)
+            gt = gt + timedelta(seconds=time_offset)
             endtime = gt + timedelta(seconds=time_offset+UNTILSECOND)
             print("Bot is trying to Claims Cell IDs", cellcode)
             while True:
-                with ThreadPoolExecutor(max_workers=10) as executor:
+                with ThreadPoolExecutor() as executor:
                     futures = [executor.submit(do_request) for i in range(0, 10)]
                     for i, future in enumerate(as_completed(futures)):
                         try:
