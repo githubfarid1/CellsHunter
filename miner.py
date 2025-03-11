@@ -248,14 +248,14 @@ def main():
                     json=payload,
                 )
                 result = response.json()
-                if result['status'] == 'SUCCESSFUL':
-                    gt = datetime.now(est)
-                    gt = gt + timedelta(seconds=time_offset)
-                    # print("Sleep until", waittime.strftime("%m/%d/%Y, %H:%M:%S"), "...", end="", flush=True)
-                    print("Cell ID's claims Status:", result['status'], "start:",starttime, "end:", gt.strftime("%H:%M:%S.%f"))
+                # if result['status'] == 'SUCCESSFUL':
+                gt = datetime.now(est)
+                gt = gt + timedelta(seconds=time_offset)
+                # print("Sleep until", waittime.strftime("%m/%d/%Y, %H:%M:%S"), "...", end="", flush=True)
+                print("Cell ID's claims Status:", result['status'], "start:",starttime, "end:", gt.strftime("%H:%M:%S.%f"))
 
-                else:
-                    print("Cell ID's claims Status:", result['status'])
+                # else:
+                #     print("Cell ID's claims Status:", result['status'])
 
             gt = datetime.now(est)
             gt = gt + timedelta(seconds=time_offset)
@@ -263,7 +263,7 @@ def main():
             print("Bot is trying to Claims Cell IDs", cellcode)
             while True:
                 with ThreadPoolExecutor() as executor:
-                    futures = [executor.submit(do_request) for i in range(0, 10)]
+                    futures = [executor.submit(do_request) for i in range(0, 30)]
                     for i, future in enumerate(as_completed(futures)):
                         try:
                             future.result()  # Ensure the task has completed without errors
