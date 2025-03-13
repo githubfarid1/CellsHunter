@@ -50,8 +50,8 @@ class Window(Tk):
 		self.title(f'{OWNER} {VERSION}')
 		# self.resizable(0, 0)
 		self.grid_propagate(False)
-		width = 550
-		height = 350
+		width = 750
+		height = 550
 		swidth = self.winfo_screenwidth()
 		sheight = self.winfo_screenheight()
 		newx = int((swidth/2) - (width/2))
@@ -191,7 +191,7 @@ class CellHunterFrame(ttk.Frame):
 		except ValueError:
 			raise ValueError("Incorrect time format, should be HH:MM:SS.MS")
 		
-		comlist = [PYLOC, "miner.py", "-d", kwargs['date'].get(), "-t", kwargs['time'].get(), "-c", kwargs['cellids'].get()]
+		comlist = [PYLOC, "miner2.py", "-d", kwargs['date'].get(), "-t", kwargs['time'].get(), "-c", kwargs['cellids'].get()]
 		run_module(comlist=comlist)
 
 class RecaptchaTokenFrame(ttk.Frame):
@@ -208,29 +208,57 @@ class RecaptchaTokenFrame(ttk.Frame):
 		self.rowconfigure(3, weight=1)
 		self.rowconfigure(4, weight=1)
 		self.rowconfigure(5, weight=1)
+		# populate
+		titleLabel = TitleLabel(self, text="Update Captcha Token")
 
 		# populate
-		check = Path("captcharesponse.txt")
+		check = Path("captcharesponse1.txt")
 		if not check.is_file():
-			with open('captcharesponse.txt', 'w') as fp:
+			with open('captcharesponse1.txt', 'w') as fp:
+				pass
+		check = Path("captcharesponse2.txt")
+		if not check.is_file():
+			with open('captcharesponse2.txt', 'w') as fp:
+				pass
+		check = Path("captcharesponse3.txt")
+		if not check.is_file():
+			with open('captcharesponse3.txt', 'w') as fp:
 				pass
 				
-		texttoken = Text(self, height = 10, width = 75)
-		with open("captcharesponse.txt", "r") as file:
+		texttoken = Text(self, height = 7, width = 90)
+		texttoken2 = Text(self, height = 7, width = 90)
+		texttoken3 = Text(self, height = 7, width = 90)
+
+		with open("captcharesponse1.txt", "r") as file:
 			content = file.readlines()
-		# breakpoint()
 		texttoken.insert(INSERT, content)
+		with open("captcharesponse2.txt", "r") as file:
+			content = file.readlines()
+		texttoken2.insert(INSERT, content)
+		with open("captcharesponse3.txt", "r") as file:
+			content = file.readlines()
+		texttoken3.insert(INSERT, content)
+
 		closeButton = CloseButton(self)
-		saveButton = ttk.Button(self, text='Save', command = lambda:self.save(content=texttoken))
+		titleLabel.grid(column = 0, row = 0, sticky = (W, E, N, S))
+		saveButton = ttk.Button(self, text='Save', command = lambda:self.save(content=texttoken, content2=texttoken2, content3=texttoken3))
 		texttoken.grid(column = 0, row = 1, sticky=(W))
+		texttoken2.grid(column = 0, row = 2, sticky=(W))
+		texttoken3.grid(column = 0, row = 3, sticky=(W))
+
 		closeButton.grid(column = 0, row = 6, sticky = (E, N, S))
 		saveButton.grid(column = 0, row = 6, sticky = (W, N, S))
 
     
 	def save(self, **kwargs):
 		# breakpoint()
-		with open("captcharesponse.txt", "w") as file:
+		with open("captcharesponse1.txt", "w") as file:
 			file.write(kwargs['content'].get("1.0",'end-1c'))
+		with open("captcharesponse2.txt", "w") as file:
+			file.write(kwargs['content2'].get("1.0",'end-1c'))
+		with open("captcharesponse3.txt", "w") as file:
+			file.write(kwargs['content3'].get("1.0",'end-1c'))
+
 		messagebox.showinfo(title='Info', message='ReCaptcha Token Saved..')
 class CloseButton(ttk.Button):
 	def __init__(self, parent):

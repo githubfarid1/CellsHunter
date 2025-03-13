@@ -15,6 +15,7 @@ from constants import *
 from concurrent.futures import ThreadPoolExecutor, wait, as_completed
 import argparse
 from utils.rotation_logger import setup_logger
+from time import sleep
 
 logger = setup_logger(__name__)
 __version__ = '1.0'
@@ -212,27 +213,42 @@ def main():
                 if gt.timestamp() >= opencaptchatime.timestamp() and not readstatus:
                     readstatus = True
                     # print("read captcha token..")
-                    with open('captcharesponse.txt') as file:
-                        content = file.readlines()
                     try:
-                        captcharesponse = content[3].split(",")[1].replace('"',"").replace("'","")
-                        payload = PAYLOAD.copy()
-                        with open('info.json') as json_file:
-                            info = json.load(json_file)
-                        payload['selectedCellIds'] = cellcode
-                        payload['submitter'] = info['submitter']
-                        payload['clientNumberId'] = info['clientNumberId']
-                        payload['clientName'] = info['clientName']
-                        payload['agentOfList'][0]['clientNumberId'] = info['agentOfList'][0]['clientNumberId']  
-                        payload['agentOfList'][0]['fullName'] = info['agentOfList'][0]['fullName']  
-                        payload['agentOfList'][0]['clientIdAndName'] = info['agentOfList'][0]['clientIdAndName']
-                        payload['revisedSelectedCellIds'] = cellcode  
-                        payload['gRecaptchaResponse'] = captcharesponse
-
+                        with open('captcharesponse1.txt') as file:
+                            content = file.readlines()
+                            captcharesponse = "".join(content).split('uvresp')[1].split(",")[1].replace('"',"").replace("'","")
+                            tokenlist.append(captcharesponse)
                     except:
-                        logger.exception("captcharesponse.txt is empty or not right value")
-                        input("captcharesponse.txt is empty or not right value") 
-                        sys.exit()
+                        pass
+                    try:    
+                        with open('captcharesponse2.txt') as file:
+                            content = file.readlines()
+                            captcharesponse = "".join(content).split('uvresp')[1].split(",")[1].replace('"',"").replace("'","")
+                            tokenlist.append(captcharesponse)
+                    except:
+                        pass
+                    try:    
+                        with open('captcharesponse3.txt') as file:
+                            content = file.readlines()
+                            captcharesponse = "".join(content).split('uvresp')[1].split(",")[1].replace('"',"").replace("'","")
+                            tokenlist.append(captcharesponse)
+                    except:
+                        pass
+
+                    
+                    payload = PAYLOAD.copy()
+                    with open('info.json') as json_file:
+                        info = json.load(json_file)
+                    payload['selectedCellIds'] = cellcode
+                    payload['submitter'] = info['submitter']
+                    payload['clientNumberId'] = info['clientNumberId']
+                    payload['clientName'] = info['clientName']
+                    payload['agentOfList'][0]['clientNumberId'] = info['agentOfList'][0]['clientNumberId']  
+                    payload['agentOfList'][0]['fullName'] = info['agentOfList'][0]['fullName']  
+                    payload['agentOfList'][0]['clientIdAndName'] = info['agentOfList'][0]['clientIdAndName']
+                    payload['revisedSelectedCellIds'] = cellcode  
+                    # payload['gRecaptchaResponse'] = captcharesponse
+
 
 
                 if gt.timestamp() >= clickme.timestamp():
@@ -279,43 +295,34 @@ def main():
                     # self.cookies_error.emit()
                     return text
             
-            def do_request():
+            def do_request(token):
                 gt = datetime.now(est)
                 gt = gt + timedelta(seconds=time_offset)
                 starttime = gt.strftime("%H:%M:%S.%f")
+                payload['gRecaptchaResponse'] = token
                 response = session.post(
                     'https://www.mlas.mndm.gov.on.ca/mlas/mlas/tenure/module/p_canh/module/acmc/lockSelectedCells',
                     headers=headers,
                     json=payload,
                 )
-                # result = response.json()
-                # if result['status'] == 'SUCCESSFUL':
-                gt = datetime.now(est)
-                gt = gt + timedelta(seconds=time_offset)
-                # print("Sleep until", waittime.strftime("%m/%d/%Y, %H:%M:%S"), "...", end="", flush=True)
-                print("Cell ID's claims Status:", genmessage(response), "start:",starttime, "end:", gt.strftime("%H:%M:%S.%f"))
-
-                # else:
-                #     print("Cell ID's claims Status:", result['status'])
+                print("Cell ID's claims Status:", genmessage(response), "execute time:",starttime)
 
             gt = datetime.now(est)
             gt = gt + timedelta(seconds=time_offset)
-            endtime = gt + timedelta(seconds=time_offset+UNTILSECOND)
             print("Bot is trying to Claims Cell IDs", cellcode)
-            while True:
-                with ThreadPoolExecutor() as executor:
-                    futures = [executor.submit(do_request) for i in range(0, 3)]
-                    for i, future in enumerate(as_completed(futures)):
-                        try:
-                            future.result()  # Ensure the task has completed without errors
-                        
-                        except Exception as e:
-                            logger.exception(f"Error in thread: {str(e)}")
-                            print(f"Error in thread: {e}")
-                gt = datetime.now(est)
-                gt = gt + timedelta(seconds=time_offset)
-                if gt.timestamp() > endtime.timestamp():
-                    break
+            with ThreadPoolExecutor() as executor:
+                # futures = [executor.submit(do_request) for i in range(0, 3)]
+                futures = []
+                for token in tokenlist:
+                    sleep(0.1)
+                    futures.append(executor.submit(do_request, token))
+                for i, future in enumerate(as_completed(futures)):
+                    try:
+                        future.result()  # Ensure the task has completed without errors
+                    
+                    except Exception as e:
+                        logger.exception(f"Error in thread: {str(e)}")
+                        print(f"Error in thread: {e}")
             input("go to next page manually...")
     except Exception as e:
         exc_type, exc_obj, exc_tb = sys.exc_info()
