@@ -305,7 +305,7 @@ def main():
                     headers=headers,
                     json=payload,
                 )
-                print("Cell ID's claims Status:", genmessage(response), "execute time:",starttime)
+                print("Cell ID's claims Status:", genmessage(response), ", executed at:",starttime)
 
             gt = datetime.now(est)
             gt = gt + timedelta(seconds=time_offset)
