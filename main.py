@@ -229,15 +229,15 @@ class RecaptchaTokenFrame(ttk.Frame):
 		texttoken2 = Text(self, height = 7, width = 90)
 		texttoken3 = Text(self, height = 7, width = 90)
 
-		with open("captcharesponse1.txt", "r") as file:
-			content = file.readlines()
-		texttoken.insert(INSERT, content)
-		with open("captcharesponse2.txt", "r") as file:
-			content = file.readlines()
-		texttoken2.insert(INSERT, content)
-		with open("captcharesponse3.txt", "r") as file:
-			content = file.readlines()
-		texttoken3.insert(INSERT, content)
+		# with open("captcharesponse1.txt", "r") as file:
+		# 	content = file.readlines()
+		# texttoken.insert(INSERT, content)
+		# with open("captcharesponse2.txt", "r") as file:
+		# 	content = file.readlines()
+		# texttoken2.insert(INSERT, content)
+		# with open("captcharesponse3.txt", "r") as file:
+		# 	content = file.readlines()
+		# texttoken3.insert(INSERT, content)
 
 		closeButton = CloseButton(self)
 		titleLabel.grid(column = 0, row = 0, sticky = (W, E, N, S))
