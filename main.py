@@ -10,7 +10,7 @@ import os
 import sys
 from sys import platform
 from subprocess import Popen, check_call
-import git
+# import git
 import warnings
 import shutil
 from dotenv import load_dotenv, dotenv_values
@@ -23,7 +23,7 @@ if platform == "linux" or platform == "linux2":
 elif platform == "win32":
 	from subprocess import CREATE_NEW_CONSOLE
 import json
-VERSION = "1.0"
+VERSION = "2.0"
 OWNER = ""
 def run_module(comlist):
 	if platform == "linux" or platform == "linux2":
@@ -67,21 +67,21 @@ class Window(Tk):
 		# self.rowconfigure(2, weight=1)
 		
 		exitButton = ttk.Button(self, text="Exit", command=lambda:self.procexit())
-		pullButton = ttk.Button(self, text='Update Script', command=lambda:self.gitPull())
+		# pullButton = ttk.Button(self, text='Update Script', command=lambda:self.gitPull())
 		# settingButton = ttk.Button(self, text='Chrome Profiles Setup', command=lambda:self.chromeProfile())
 		
 		exitButton.grid(row=2, column=3, sticky=(E), padx=20, pady=5)
-		pullButton.grid(row = 2, column = 0, sticky = (W), padx=20, pady=10)
+		# pullButton.grid(row = 2, column = 0, sticky = (W), padx=20, pady=10)
 		# settingButton.grid(row = 2, column = 0, sticky = (W), padx=20, pady=10)
 
 		mainFrame = MainFrame(self)
 		mainFrame.grid(column=0, row=0, sticky=(N, E, W, S), columnspan=4)
 
-	def gitPull(self):
-		git_dir = os.getcwd() 
-		g = git.cmd.Git(git_dir)
-		g.pull()		
-		messagebox.showinfo(title='Info', message='the scripts has updated..')
+	# def gitPull(self):
+		# git_dir = os.getcwd() 
+		# g = git.cmd.Git(git_dir)
+		# g.pull()		
+		# messagebox.showinfo(title='Info', message='the scripts has updated..')
 
 
 	def procexit(self):
@@ -160,25 +160,37 @@ class CellHunterFrame(ttk.Frame):
 		closeButton = CloseButton(self)
 		
 		labelcellids = Label(self, text="CELL ID's:")
-		textcellids = Entry(self, width=50, )
+		textcellids = Text(self, width=50, height=2)
+		# textcellids = Entry(self, width=50)
 		labeldate = Label(self, text="Click Date:")
 		textdate = DateEntry(self, width= 20, date_pattern='yyy-mm-dd')
 		labeltime = Label(self, text="Click Time:")
 		texttime = Entry(self, width=15)
+		labeluser = Label(self, text="User:")
+		textuser = Entry(self, width=30)
+		labelpassword = Label(self, text="Password:")
+		textpassword = Entry(self, width=30)
 
-		runButton = ttk.Button(self, text='Run Process', command = lambda:self.run_process(date=textdate, time=texttime, cellids=textcellids))
+		runButton = ttk.Button(self, text='Run Process', command = lambda:self.run_process(date=textdate, time=texttime, cellids=textcellids, user=textuser, password=textpassword))
 
 		# layout
 		titleLabel.grid(column = 0, row = 0, sticky = (W, E, N, S))
-		labeldate.grid(column = 0, row = 1, sticky=(W))
-		textdate.grid(column=0, row=1)
-		labeltime.grid(column = 0, row = 2, sticky=(W))
-		texttime.grid(column=0, row=2)
+		labeluser.grid(column = 0, row = 1, sticky=(W))
+		textuser.grid(column=0, row=1)
+		textuser.insert(0, os.environ.get("USER"))
+		labelpassword.grid(column = 0, row = 2, sticky=(W))
+		textpassword.grid(column=0, row=2)
+		textpassword.insert(0, os.environ.get("PASSWORD"))
+
+		labeldate.grid(column = 0, row = 3, sticky=(W))
+		textdate.grid(column=0, row=3)
+		labeltime.grid(column = 0, row = 4, sticky=(W))
+		texttime.grid(column=0, row=4)
 		texttime.insert(0, os.environ.get("CLICKTIME"))
         
-		labelcellids.grid(column = 0, row = 3, sticky=(W))
-		textcellids.grid(column=0, row=3)
-		runButton.grid(column = 0, row = 3, sticky = (E))
+		labelcellids.grid(column = 0, row = 5, sticky=(W))
+		textcellids.grid(column=0, row=5)
+		runButton.grid(column = 0, row = 5, sticky = (E))
 		closeButton.grid(column = 0, row = 6, sticky = (E, N, S))
 
 	def run_process(self, **kwargs):
@@ -191,7 +203,7 @@ class CellHunterFrame(ttk.Frame):
 		except ValueError:
 			raise ValueError("Incorrect time format, should be HH:MM:SS.MS")
 		
-		comlist = [PYLOC, "miner2.py", "-d", kwargs['date'].get(), "-t", kwargs['time'].get(), "-c", kwargs['cellids'].get()]
+		comlist = [PYLOC, "miner2.py", "-d", kwargs['date'].get(), "-t", kwargs['time'].get(), "-c", kwargs['cellids'].get("1.0",'end-1c'), "-u", kwargs['user'].get(), "-p", kwargs['password'].get()]
 		run_module(comlist=comlist)
 
 class RecaptchaTokenFrame(ttk.Frame):

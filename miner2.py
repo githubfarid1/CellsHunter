@@ -23,8 +23,8 @@ __version__ = '1.0'
 logger.info(f'CellHunter started at {datetime.now().strftime("%D %T")}. Version {__version__}')
 
 load_dotenv()
-USER = os.environ.get("USER")
-PASSWORD = os.environ.get("PASSWORD")
+# USER = os.environ.get("USER")
+# PASSWORD = os.environ.get("PASSWORD")
 HEADLESS = (os.getenv('HEADLESS', 'False') == 'True')
 # CLICKTIME = os.environ.get("CLICKTIME")
 CELLIDS = os.environ.get("CELLIDS")
@@ -87,6 +87,9 @@ def main():
     parser.add_argument('-d', '--date', type=str,help="Date Click")
     parser.add_argument('-t', '--time', type=str,help="Time Click")
     parser.add_argument('-c', '--cellids', type=str,help="Cell IDs")
+    parser.add_argument('-u', '--user', type=str,help="User")
+    parser.add_argument('-p', '--password', type=str,help="Password")
+
     args = parser.parse_args()
     try:
         date.fromisoformat(args.date)
@@ -114,8 +117,12 @@ def main():
                        int(clicktime.split(":")[0]), int(clicktime.split(":")[1]), int(clicktime.split(":")[2].split(".")[0]), int(clicktime.split(":")[2].split(".")[1]), tzinfo = tz.gettz(selected_timezone))
     
     clickmestr= " ".join([clickdate, clicktime])
-    # cellcode = input("Selected Cell IDs: ")
     cellcode = args.cellids
+    user = args.user
+    password = args.password
+    print("User:", user)
+    print("Password:", password)
+
     print("CELL IDs:", cellcode)
     print("Click execute time at:", clickmestr)
 
@@ -137,8 +144,8 @@ def main():
             print("PASSED")
             print("Waiting for Login", "... ", end="", flush=True)
             page.wait_for_selector("input[name='identifier']", timeout=30000)
-            page.fill("input[name='identifier']", USER)
-            page.fill("input[name='credentials.passcode']", PASSWORD)
+            page.fill("input[name='identifier']", user)
+            page.fill("input[name='credentials.passcode']", password)
             # breakpoint()
             
             # page.click("input[value='Sign in']", timeout=20000)
