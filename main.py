@@ -43,6 +43,11 @@ def main():
 	window = Window()
 	window.mainloop()
 
+def remove_files(files=[]):
+	for file in files:
+		if os.path.exists(file):
+			os.remove(file)
+
 class Window(Tk):
 	def __init__(self) -> None:
 		super().__init__()
@@ -95,6 +100,9 @@ class Window(Tk):
 class MainFrame(ttk.Frame):
 	def __init__(self, window) -> None:
 		super().__init__(window)
+		remove_files(["captcharesponse1.txt", "captcharesponse2.txt", 
+				"captcharesponse3.txt", "cellids.txt", "cookieto.txt", "headers.json", "info.json"])
+
 		# configure
 		# self.grid(column=0, row=0, sticky=(N, E, W, S), columnspan=2)
 		framestyle = ttk.Style()
@@ -119,11 +127,13 @@ class MainFrame(ttk.Frame):
 		titleLabel = TitleLabel(self, 'Main Menu')
 		cellHunterButton = FrameButton(self, window, text="cell hunter", class_frame=CellHunterFrame)
 		captchaTokenButton = FrameButton(self, window, text="Update ReCaptcha Token", class_frame=RecaptchaTokenFrame)
+		swapButton = FrameButton(self, window, text="Swap Cell Ids", class_frame=RecaptchaTokenFrame)
 
 		# layout
 		titleLabel.grid(column = 0, row = 0, sticky=(W, E, N, S), padx=15, pady=5, columnspan=4)
 		cellHunterButton.grid(column = 0, row = 1, sticky=(W, E, N, S), padx=15, pady=5)
 		captchaTokenButton.grid(column = 0, row = 2, sticky=(W, E, N, S), padx=15, pady=5)
+		swapButton.grid(column = 0, row = 3, sticky=(W, E, N, S), padx=15, pady=5)
 
 
 class TitleLabel(ttk.Label):
@@ -241,15 +251,6 @@ class RecaptchaTokenFrame(ttk.Frame):
 		texttoken2 = Text(self, height = 7, width = 90)
 		texttoken3 = Text(self, height = 7, width = 90)
 
-		# with open("captcharesponse1.txt", "r") as file:
-		# 	content = file.readlines()
-		# texttoken.insert(INSERT, content)
-		# with open("captcharesponse2.txt", "r") as file:
-		# 	content = file.readlines()
-		# texttoken2.insert(INSERT, content)
-		# with open("captcharesponse3.txt", "r") as file:
-		# 	content = file.readlines()
-		# texttoken3.insert(INSERT, content)
 
 		closeButton = CloseButton(self)
 		titleLabel.grid(column = 0, row = 0, sticky = (W, E, N, S))

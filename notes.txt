@@ -11,3 +11,11 @@ jelaskan tentang camoufox kalau berpindah antar tab dengan ctrl+tab
 
 kyle.brand11@gmail.com
 Western@2025
+
+swapper fields:
+1. Cookie TO
+2. User Agent TO
+3. Random Open Cell
+4. Cells for Transfer
+5. Captcha Token for Transfer
+6. Captcha Token for Cancel

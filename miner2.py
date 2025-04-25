@@ -268,8 +268,9 @@ def main():
                     if json_data['status'] == 'SUCCESSFUL':
                         # self.locked_cells_by_user.emit(len(self.cells_list))
                         # self.success.emit(", ".join(self.cells_list))
-                        
                         text = f'Successful: Locked {len(celllist)} cells.'
+                        with open("cellids.txt", "w") as f:
+                            f.write(cellcode)
                         request_status = True
                     elif json_data['status'] == 'FAILED':
                         answer = [x["msgKey"].replace("MLAS.GENERAL_ERROR_MSG.", "") for x in

@@ -173,5 +173,6 @@ info.json
 headers.json
 # captcharesponse.txt
 captcharesponse*
-
 .venv.txt
+cellids.txt
+cookieto.txt
