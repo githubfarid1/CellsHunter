@@ -158,7 +158,7 @@ def link_cellids():
     )
     # print(response.text)
     # print("Cell ID's claims Status:", genmessage(response=response, cellcode=cellids))
-    print("cell ids", cellids, "has locked to", info['clientName'])
+    print("cell ids", cellids, "has locked by", info['clientName'])
 
 
 def main():
