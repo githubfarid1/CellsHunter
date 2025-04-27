@@ -2,7 +2,7 @@ import requests
 from constants import *
 from dotenv import load_dotenv, dotenv_values
 import os
-
+import json
 load_dotenv()
 
 def genmessage(response, cellcode):
@@ -46,76 +46,123 @@ def genmessage(response, cellcode):
         # self.cookies_error.emit()
         return text
 
-with open('cookieto.txt') as file:
-    content = file.readlines()
-cookieto = "".join(content)
-xsrftoken = ""
-for cook in cookieto.split(";"):
-    if cook.split("=")[0].strip() == 'XSRF-TOKEN':
-        xsrftoken = cook.split("=")[1]
+######
+def unlink_cellids():
+    with open('cellids.txt') as file:
+        content = file.readlines()
+    cellidslocked = "".join(content)
+
+    with open('info.json') as json_file:
+        info = json.load(json_file)
+
+    cellcode = os.environ.get("RANDOM_OPEN_CELL")
+
+    with open('headers.json') as json_file:
+        headers = json.load(json_file)
+
+    with open('captchaswapper2.txt') as file:
+        content = file.readlines()
+        captcharesponse = "".join(content).split('uvresp')[1].split(",")[1].replace('"',"").replace("'","")
+
+    payload = PAYLOAD.copy()
+    payload['selectedCellIds'] = cellcode
+    payload['submitter'] = info['submitter']
+    payload['clientNumberId'] = info['clientNumberId']
+    payload['clientName'] = info['clientName']
+    payload['agentOfList'][0]['clientNumberId'] = info['agentOfList'][0]['clientNumberId']  
+    payload['agentOfList'][0]['fullName'] = info['agentOfList'][0]['fullName']  
+    payload['agentOfList'][0]['clientIdAndName'] = info['agentOfList'][0]['clientIdAndName']
+    payload['revisedSelectedCellIds'] = cellcode
+    payload['gRecaptchaResponse'] = captcharesponse
+    response = requests.post(
+        'https://www.mlas.mndm.gov.on.ca/mlas/mlas/tenure/module/p_canh/module/acmc/lockSelectedCells',
+        headers=headers,
+        json=payload,
+    )
+
+    # print("Cell ID's claims Status:", genmessage(response=response, cellcode=cellcode))
+    print("Client", info['clientName'], "has released cell ids:", cellidslocked)
+#####
+
+def link_cellids():
+    with open('cookieto.txt') as file:
+        content = file.readlines()
+    cookieto = "".join(content)
+    xsrftoken = ""
+    for cook in cookieto.split(";"):
+        if cook.split("=")[0].strip() == 'XSRF-TOKEN':
+            xsrftoken = cook.split("=")[1]
 
 
-with open('cellids.txt') as file:
-    content = file.readlines()
-cellids = "".join(content)
+    with open('cellids.txt') as file:
+        content = file.readlines()
+    cellids = "".join(content)
 
-headers = {
-    'accept': '*/*',
-    'accept-language': 'en-US,en;q=0.9',
-    'priority': 'u=1, i',
-    'referer': 'https://www.mlas.mndm.gov.on.ca/mlas/index.html',
-    'sec-ch-ua': '"Google Chrome";v="135", "Not-A.Brand";v="8", "Chromium";v="135"',
-    'sec-ch-ua-mobile': '?0',
-    'sec-ch-ua-platform': '"Windows"',
-    'sec-fetch-dest': 'empty',
-    'sec-fetch-mode': 'cors',
-    'sec-fetch-site': 'same-origin',
-    'user-agent': os.environ.get("USER_AGENT"),
-    'x-requested-with': 'XMLHttpRequest',
-    'x-xsrf-token': xsrftoken,
-    'cookie': cookieto,
+    headers = {
+        'accept': '*/*',
+        'accept-language': 'en-US,en;q=0.9',
+        'priority': 'u=1, i',
+        'referer': 'https://www.mlas.mndm.gov.on.ca/mlas/index.html',
+        'sec-ch-ua': '"Google Chrome";v="135", "Not-A.Brand";v="8", "Chromium";v="135"',
+        'sec-ch-ua-mobile': '?0',
+        'sec-ch-ua-platform': '"Windows"',
+        'sec-fetch-dest': 'empty',
+        'sec-fetch-mode': 'cors',
+        'sec-fetch-site': 'same-origin',
+        'user-agent': os.environ.get("USER_AGENT"),
+        'x-requested-with': 'XMLHttpRequest',
+        'x-xsrf-token': xsrftoken,
+        'cookie': cookieto,
 
-}
+    }
 
-response = requests.get(
-    'https://www.mlas.mndm.gov.on.ca/mlas/api/prospector/getCurrentClientId',
-    # cookies=cookies,
-    headers=headers,
-)
-clientid = response.text
+    response = requests.get(
+        'https://www.mlas.mndm.gov.on.ca/mlas/api/prospector/getCurrentClientId',
+        # cookies=cookies,
+        headers=headers,
+    )
+    clientid = response.text
 
-params = {
-    'id': '10006360',
-}
-response = requests.get(
-    'https://www.mlas.mndm.gov.on.ca/mlas/mlas/tenure/module/p_canh/module/acmc/retrieveInitalFormData',
-    params=params,
-    headers=headers,
-)
-info = response.json()
-# input(info)
-with open('captchaswapper1.txt') as file:
-    content = file.readlines()
-    captcharesponse = "".join(content).split('uvresp')[1].split(",")[1].replace('"',"").replace("'","")
+    params = {
+        'id': clientid,
+    }
+    response = requests.get(
+        'https://www.mlas.mndm.gov.on.ca/mlas/mlas/tenure/module/p_canh/module/acmc/retrieveInitalFormData',
+        params=params,
+        headers=headers,
+    )
+    info = response.json()
+    # input(info)
+    with open('captchaswapper1.txt') as file:
+        content = file.readlines()
+        captcharesponse = "".join(content).split('uvresp')[1].split(",")[1].replace('"',"").replace("'","")
 
-# print(captcharesponse)
+    # print(captcharesponse)
 
-payload = PAYLOAD.copy()
-payload['selectedCellIds'] = cellids
-payload['submitter'] = info['submitter']
-payload['clientNumberId'] = info['clientNumberId']
-payload['clientName'] = info['clientName']
-payload['agentOfList'][0]['clientNumberId'] = info['agentOfList'][0]['clientNumberId']  
-payload['agentOfList'][0]['fullName'] = info['agentOfList'][0]['fullName']  
-payload['agentOfList'][0]['clientIdAndName'] = info['agentOfList'][0]['clientIdAndName']
-payload['revisedSelectedCellIds'] = cellids  
-payload['gRecaptchaResponse'] = captcharesponse
-# print(payload)
-# input()
-response = requests.post(
-    'https://www.mlas.mndm.gov.on.ca/mlas/mlas/tenure/module/p_canh/module/acmc/lockSelectedCells',
-    headers=headers,
-    json=payload,
-)
-# print(response.text)
-print("Cell ID's claims Status:", genmessage(response=response, cellcode=cellids))
+    payload = PAYLOAD.copy()
+    payload['selectedCellIds'] = cellids
+    payload['submitter'] = info['submitter']
+    payload['clientNumberId'] = info['clientNumberId']
+    payload['clientName'] = info['clientName']
+    payload['agentOfList'][0]['clientNumberId'] = info['agentOfList'][0]['clientNumberId']  
+    payload['agentOfList'][0]['fullName'] = info['agentOfList'][0]['fullName']  
+    payload['agentOfList'][0]['clientIdAndName'] = info['agentOfList'][0]['clientIdAndName']
+    payload['revisedSelectedCellIds'] = cellids  
+    payload['gRecaptchaResponse'] = captcharesponse
+    # print(payload)
+    # input()
+    response = requests.post(
+        'https://www.mlas.mndm.gov.on.ca/mlas/mlas/tenure/module/p_canh/module/acmc/lockSelectedCells',
+        headers=headers,
+        json=payload,
+    )
+    # print(response.text)
+    # print("Cell ID's claims Status:", genmessage(response=response, cellcode=cellids))
+    print("cell ids", cellids, "has locked to", info['clientName'])
+
+
+def main():
+    unlink_cellids()
+    link_cellids()
+if __name__ == '__main__':
+    main()
